@@ -1,3 +1,9 @@
+Goals:
+   Translate everything into english
+   Document everything
+   format README.md correctly
+
+
 Chinese: 
 
 # Buff-Bot

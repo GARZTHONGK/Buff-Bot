@@ -20,7 +20,7 @@ headers = {
 
 def checkaccountstate(dev=False):
     if dev and os.path.exists('dev/buff_account.json'):
-        logger.info('开发模式，使用本地账号')
+        logger.info('Development mode, using a local account')
         return json.loads(FileUtils.readfile('dev/buff_account.json'))['data']['nickname']
     else:
         response_json = requests.get('https://buff.163.com/account/api/user/info', headers=headers).json()
@@ -28,29 +28,29 @@ def checkaccountstate(dev=False):
             if 'data' in response_json:
                 if 'nickname' in response_json['data']:
                     return response_json['data']['nickname']
-        logger.error('BUFF账户登录状态失效，请检查cookies.txt！')
-        logger.info('点击任何键继续...')
+        logger.error('The login status of the BUFF account is invalid, please check cookies.txt!')
+        logger.info("Press any key to continue...")
         os.system('pause >nul')
         sys.exit()
 
 
-@notify(on="ftqq", name="Server酱通知插件")
+@notify(on="ftqq", name="Server sauce notification plug-in")
 def server_chan_notification_wrapper(body, title, notify_type, *args, **kwargs):
     token = kwargs['meta']['host']
     try:
         resp = requests.get('https://sctapi.ftqq.com/%s.send?title=%s&desp=%s' % (token, title, body))
         if resp.status_code == 200:
             if resp.json()['code'] == 0:
-                logger.info('Server酱通知发送成功')
+                logger.info('Server sauce notification sent successfully')
                 return True
             else:
-                logger.error('Server酱通知发送失败, return code = %d' % resp.json()['code'])
+                logger.error('Server sauce notification failed to send, return code = %d' % resp.json()['code'])
                 return False
         else:
-            logger.error('Server酱通知发送失败, http return code = %s' % resp.status_code)
+            logger.error('Server sauce notification failed to send, http return code = %s' % resp.status_code)
             return False
     except Exception as e:
-        logger.error('Server酱通知插件发送失败！')
+        logger.error('Server sauce notification plug-in failed to send！')
         logger.error(e)
         return False
 
@@ -78,8 +78,8 @@ def main():
     asset = AppriseAsset(plugin_paths=[__file__])
     os.system("title Buff-Bot https://github.com/jiajiaxd/Buff-Bot")
 
-    logger.info("欢迎使用Buff-Bot Github:https://github.com/jiajiaxd/Buff-Bot")
-    logger.info("正在初始化...")
+    logger.info("Welcome to Buff-Bot Github: https://github.com/jiajiaxd/Buff-Bot")
+    logger.info("initializing...")
     first_run = False
     if not os.path.exists("config.json"):
         first_run = True
@@ -93,8 +93,8 @@ def main():
                                                              "identity_secret": "", "api_key": "",
                                                              "steam_username": "", "steam_password": ""}))
     if first_run:
-        logger.info("检测到首次运行，已为您生成配置文件，请按照README提示填写配置文件！")
-        logger.info('点击任何键继续...')
+        logger.info("The first run is detected, and a configuration file has been generated for you, please follow the README prompts to fill in the configuration file!")
+        logger.info('Press any key to continue...')
         os.system('pause >nul')
     config = json.loads(FileUtils.readfile("config.json"))
     ignoredoffer = []
@@ -109,70 +109,70 @@ def main():
         protection_price = config['protection_price']
     if 'protection_price_percentage' in config:
         protection_price_percentage = config['protection_price_percentage']
-    logger.info("正在准备登录至BUFF...")
+    logger.info("Preparing to log into BUFF...")
     headers['Cookie'] = FileUtils.readfile('cookies.txt')
-    logger.info("已检测到cookies，尝试登录")
-    logger.info("已经登录至BUFF 用户名：" + checkaccountstate(dev=development_mode))
+    logger.info("cookies detected, try to log in ")
+    logger.info("Already logged into BUFF username：" + checkaccountstate(dev=development_mode))
 
     if development_mode:
-        logger.info("开发者模式已开启，跳过Steam登录")
+        logger.info("Developer mode is enabled, skip Steam login")
     else:
         try:
-            logger.info("正在登录Steam...")
+            logger.info("Logging into steam")
             acc = json.loads(FileUtils.readfile('steamaccount.json'))
             client = SteamClient(acc.get('api_key'))
             SteamClient.login(client, acc.get('steam_username'), acc.get('steam_password'), 'steamaccount.json')
-            logger.info("登录完成！\n")
+            logger.info("Successfully logged in!\n")
         except FileNotFoundError:
-            logger.error('未检测到steamaccount.json，请添加到steamaccount.json后再进行操作！')
-            logger.info('点击任何键退出...')
+            logger.error('steamaccount.json not detected，Please add it to steamaccount.json before proceeding！')
+            logger.info('Press any key to exit')
             os.system('pause >nul')
             sys.exit()
 
     while True:
         try:
-            logger.info("正在检查Steam账户登录状态...")
+            logger.info("Checking Steam account login status...")
             if not development_mode:
                 if not client.is_session_alive():
-                    logger.error("Steam登录状态失效！程序退出...")
+                    logger.error("Steam login status invalid! program exited...")
                     sys.exit()
-            logger.info("Steam账户状态正常")
-            logger.info("正在进行待发货/待收货饰品检查...")
+            logger.info("Steam account status is normal")
+            logger.info("Pending shipment/pending accessories inspection...")
             checkaccountstate()
             if development_mode and os.path.exists("dev/message_notification.json"):
-                logger.info("开发者模式已开启，使用本地消息通知文件")
+                logger.info("Developer mode is turned on, use local message notification file")
                 to_deliver_order = json.loads(FileUtils.readfile("dev/message_notification.json")).get('data').get(
                     'to_deliver_order')
             else:
                 response = requests.get("https://buff.163.com/api/message/notification", headers=headers)
                 to_deliver_order = json.loads(response.text).get('data').get('to_deliver_order')
             if int(to_deliver_order.get('csgo')) != 0 or int(to_deliver_order.get('dota2')) != 0:
-                logger.info("检测到" + str(
-                    int(to_deliver_order.get('csgo')) + int(to_deliver_order.get('dota2'))) + "个待发货请求！")
-                logger.info("CSGO待发货：" + str(int(to_deliver_order.get('csgo'))) + "个")
-                logger.info("DOTA2待发货：" + str(int(to_deliver_order.get('dota2'))) + "个")
+                logger.info("detected" + str(
+                    int(to_deliver_order.get('csgo')) + int(to_deliver_order.get('dota2'))) + "delivery request！")
+                logger.info("CSGO to be delivered: " + str(int(to_deliver_order.get('csgo'))) + "units")
+                logger.info("DOTA2 to be delivered: " + str(int(to_deliver_order.get('dota2'))) + "units")
             if development_mode and os.path.exists("dev/steam_trade.json"):
-                logger.info("开发者模式已开启，使用本地待发货文件")
+                logger.info("Developer mode is turned on, using local files to be shipped")
                 trade = json.loads(FileUtils.readfile("dev/steam_trade.json")).get('data')
             else:
                 response = requests.get("https://buff.163.com/api/market/steam_trade", headers=headers)
                 trade = json.loads(response.text).get('data')
-            logger.info("查找到" + str(len(trade)) + "个待处理的交易报价请求！")
+            logger.info("Found" + str(len(trade)) + "pending trade quote requests! ")
             try:
                 if len(trade) != 0:
                     i = 0
                     for go in trade:
                         i += 1
                         offerid = go.get('tradeofferid')
-                        logger.info("正在处理第" + str(i) + "个交易报价 报价ID" + str(offerid))
+                        logger.info("Processing the first" + str(i) + "Trade offer ID" + str(offerid))
                         if offerid not in ignoredoffer:
                             try:
                                 if sell_protection:
-                                    logger.info("正在检查交易金额...")
-                                    # 只检查第一个物品的价格, 多个物品为批量购买, 理论上批量上架的价格应该是一样的
+                                    logger.info("Checking transaction amount...")
+                                    # Only check the price of the first item, multiple items are purchased in bulk, theoretically the price of the bulk should be the same
                                     if go['tradeofferid'] not in orderinfo:
                                         if development_mode and os.path.exists("dev/sell_order_history.json"):
-                                            logger.info("开发者模式已开启，使用本地数据")
+                                            logger.info("Developer mode is enabled, use local data")
                                             resp_json = json.loads(FileUtils.readfile("dev/sell_order_history.json"))
                                         else:
                                             sell_order_history_url = 'https://buff.163.com/api/market/sell_order/history' \
@@ -184,12 +184,12 @@ def main():
                                                 if 'tradeofferid' in sell_item and sell_item['tradeofferid']:
                                                     orderinfo[sell_item['tradeofferid']] = sell_item
                                     if go['tradeofferid'] not in orderinfo:
-                                        logger.error("无法获取交易金额，跳过此交易报价")
+                                        logger.error("The transaction amount cannot be obtained, skip this transaction quotation")
                                         continue
                                     price = float(orderinfo[go['tradeofferid']]['price'])
                                     goods_id = str(list(go['goods_infos'].keys())[0])
                                     if development_mode and os.path.exists("dev/shop_listing.json"):
-                                        logger.info("开发者模式已开启，使用本地价格数据")
+                                        logger.info("Developer mode is enabled, use local price data")
                                         resp_json = json.loads(FileUtils.readfile("dev/shop_listing.json"))
                                     else:
                                         shop_listing_url = 'https://buff.163.com/api/market/goods/sell_order?game=' + \
@@ -200,7 +200,7 @@ def main():
                                     other_lowest_price = float(resp_json['data']['items'][0]['price'])
                                     if price < other_lowest_price * protection_price_percentage and \
                                             other_lowest_price > protection_price:
-                                        logger.error("交易金额过低，跳过此交易报价")
+                                        logger.error("The transaction amount is too low, skip this transaction quote")
                                         if 'protection_notification' in config:
                                             apprise_obj = apprise.Apprise()
                                             for server in config['servers']:
@@ -210,13 +210,13 @@ def main():
                                                 body=format_str(config['protection_notification']['body'], go),
                                             )
                                         continue
-                                logger.info("正在接受报价...")
+                                logger.info("Accepting offers...")
                                 if development_mode:
-                                    logger.info("开发者模式已开启，跳过接受报价")
+                                    logger.info("Developer mode is enabled, skip accepting offers")
                                 else:
                                     client.accept_trade_offer(offerid)
                                 ignoredoffer.append(offerid)
-                                logger.info("接受完成！已经将此交易报价加入忽略名单！\n")
+                                logger.info("Trade complete! This transaction offer has been added to the ignore list! \n ")
                                 if 'sell_notification' in config:
                                     apprise_obj = apprise.Apprise()
                                     for server in config['servers']:
@@ -227,21 +227,21 @@ def main():
                                     )
                             except Exception as e:
                                 logger.error(e, exc_info=True)
-                                logger.info("出现错误，稍后再试！")
+                                logger.info("An error occurred , try again later!")
                         else:
-                            logger.info("该报价已经被处理过，跳过.\n")
-                    logger.info("暂无BUFF报价请求.将在180秒后再次检查BUFF交易信息！\n")
+                            logger.info("This quote has already been processed, skip. \n ")
+                    logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 180 seconds! \n ")
                 else:
-                    logger.info("暂无BUFF报价请求.将在180秒后再次检查BUFF交易信息！\n")
+                    logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 180 seconds! \n ")
             except KeyboardInterrupt:
-                logger.info("用户停止，程序退出...")
+                logger.info("User stopped, program exited ... ")
                 sys.exit()
             except Exception as e:
                 logger.error(e, exc_info=True)
-                logger.info("出现错误，稍后再试！")
+                logger.info(" An error occurred , try again later!")
             time.sleep(180)
         except KeyboardInterrupt:
-            logger.info("用户停止，程序退出...")
+            logger.info("User stopped, program exited ... ")
             sys.exit()
 
 
