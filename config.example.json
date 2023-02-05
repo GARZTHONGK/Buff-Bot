@@ -4,12 +4,12 @@
   "protection_price": 30,
   "protection_price_percentage": 0.9,
   "sell_notification": {
-    "title": "成功出售{game}饰品: {item_name}",
-    "body": "![good_icon]({good_icon})\n游戏: {game}\n饰品: {item_name}\nSteam价格(参考): {steam_price} USD\nSteam价格(参考): {steam_price_cny} RMB\n![buyer_avatar]({buyer_avatar})\n买家: {buyer_name}\n订单时间: {order_time}"
+    "title": "Successfully sold {game} accessories: {item_name}",
+    "body": "![good_icon]({good_icon}) \\ nGame : {game} \\ nAccessory : {item_name} \\n Steam price (reference): {steam_price} USD \\n Steam price (reference): {steam_price_cny } RMB \\n ![buyer_avatar]({buyer_avatar}) \\ nBuyer: {buyer_name} \\ nOrder Time: {order_time} "
   },
   "protection_notification": {
     "title": "{game}饰品: {item_name} 未自动接收报价, 价格与市场最低价相差过大",
-    "body": "请自行至BUFF确认报价!"
+    "body": "Please go to BUFF to confirm the quotation!"
   },
   "servers": [
     "tgram://bottoken/ChatID"

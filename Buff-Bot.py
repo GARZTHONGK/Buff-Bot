@@ -19,6 +19,7 @@ headers = {
 
 
 def checkaccountstate(dev=False):
+
     if dev and os.path.exists('dev/buff_account.json'):
         logger.info('Development mode, using a local account')
         return json.loads(FileUtils.readfile('dev/buff_account.json'))['data']['nickname']
@@ -102,7 +103,7 @@ def main():
     if 'dev' in config and config['dev']:
         development_mode = True
     if development_mode:
-        logger.info("开发者模式已开启")
+        logger.info("Developer mode is enabled")
     if 'sell_protection' in config:
         sell_protection = config['sell_protection']
     if 'protection_price' in config:
