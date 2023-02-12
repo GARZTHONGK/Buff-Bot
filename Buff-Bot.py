@@ -156,7 +156,8 @@ def main():
             logger.info("Steam account status is normal")
             logger.info("Pending shipment/pending accessories inspection...")
             checkaccountstate()
-            if development_mode and os.path.exists("dev/message_notification.json"): #dev mode
+            if development_mode and os.path.exists("dev/message_notification.json"):
+                #dev mode
                 logger.info("Developer mode is turned on, use local message notification file")
                 to_deliver_order = json.loads(FileUtils.readfile("dev/message_notification.json")).get('data').get(
                     'to_deliver_order')
@@ -164,15 +165,21 @@ def main():
             else:
                 response = requests.get("https://buff.163.com/api/message/notification", headers=headers)
                 to_deliver_order = json.loads(response.text).get('data').get('to_deliver_order')
+
             if int(to_deliver_order.get('csgo')) != 0 or int(to_deliver_order.get('dota2')) != 0:
+                # check if for any new sales
                 logger.info("detected" + str(
                     int(to_deliver_order.get('csgo')) + int(to_deliver_order.get('dota2'))) + "delivery request！")
                 logger.info("CSGO to be delivered: " + str(int(to_deliver_order.get('csgo'))) + "units")
                 logger.info("DOTA2 to be delivered: " + str(int(to_deliver_order.get('dota2'))) + "units")
+
             if development_mode and os.path.exists("dev/steam_trade.json"):
+                # dev mode
                 logger.info("Developer mode is turned on, using local files to be shipped")
                 trade = json.loads(FileUtils.readfile("dev/steam_trade.json")).get('data')
+
             else:
+                # get data from site
                 response = requests.get("https://buff.163.com/api/market/steam_trade", headers=headers)
                 trade = json.loads(response.text).get('data')
             logger.info("Found" + str(len(trade)) + "pending trade quote requests! ")
@@ -190,36 +197,48 @@ def main():
                                     # Only check the price of the first item, multiple items are purchased in bulk, theoretically the price of the bulk should be the same
                                     if go['tradeofferid'] not in orderinfo:
                                         if development_mode and os.path.exists("dev/sell_order_history.json"):
+                                            # dev mode
                                             logger.info("Developer mode is enabled, use local data")
                                             resp_json = json.loads(FileUtils.readfile("dev/sell_order_history.json"))
                                         else:
+                                            # constructs a history link and gets data from it
                                             sell_order_history_url = 'https://buff.163.com/api/market/sell_order/history' \
                                                                      '?appid=' + str(go['appid']) + '&mode=1 '
                                             resp = requests.get(sell_order_history_url, headers=headers)
                                             resp_json = resp.json()
+
                                         if resp_json['code'] == 'OK':
+                                            # adds a key value pair to the "orderinfo" the key is set to the value of 'sell_item['tradeofferid'], and the value is set to the value of 'sell_item*
                                             for sell_item in resp_json['data']['items']:
                                                 if 'tradeofferid' in sell_item and sell_item['tradeofferid']:
                                                     orderinfo[sell_item['tradeofferid']] = sell_item
+
                                     if go['tradeofferid'] not in orderinfo:
                                         logger.error("The transaction amount cannot be obtained, skip this transaction quotation")
                                         continue
                                     price = float(orderinfo[go['tradeofferid']]['price'])
                                     goods_id = str(list(go['goods_infos'].keys())[0])
+
                                     if development_mode and os.path.exists("dev/shop_listing.json"):
+                                        # dev mode
                                         logger.info("Developer mode is enabled, use local price data")
                                         resp_json = json.loads(FileUtils.readfile("dev/shop_listing.json"))
+
                                     else:
+                                        # constructs a link and gets data
                                         shop_listing_url = 'https://buff.163.com/api/market/goods/sell_order?game=' + \
                                                            go['game'] + '&goods_id=' + goods_id + \
                                                            '&page_num=1&sort_by=default&mode=&allow_tradable_cooldown=1'
                                         resp = requests.get(shop_listing_url, headers=headers)
                                         resp_json = resp.json()
+
                                     other_lowest_price = float(resp_json['data']['items'][0]['price'])
                                     if price < other_lowest_price * protection_price_percentage and \
                                             other_lowest_price > protection_price:
+                                        # checks if price is too low compared to other items
                                         logger.error("The transaction amount is too low, skip this transaction quote")
                                         if 'protection_notification' in config:
+                                            # sends notification to app
                                             apprise_obj = apprise.Apprise()
                                             for server in config['servers']:
                                                 apprise_obj.add(server)
@@ -228,14 +247,18 @@ def main():
                                                 body=format_str(config['protection_notification']['body'], go),
                                             )
                                         continue
+
                                 logger.info("Accepting offers...")
                                 if development_mode:
+                                    # dev mode skip accepting offers
                                     logger.info("Developer mode is enabled, skip accepting offers")
                                 else:
+                                    # accepting trade
                                     client.accept_trade_offer(offerid)
-                                ignoredoffer.append(offerid)
+                                ignoredoffer.append(offerid) #adds offer to ignore list
                                 logger.info("Trade complete! This transaction offer has been added to the ignore list! \n ")
                                 if 'sell_notification' in config:
+                                    # sends notification to app
                                     apprise_obj = apprise.Apprise()
                                     for server in config['servers']:
                                         apprise_obj.add(server)
@@ -247,18 +270,22 @@ def main():
                                 logger.error(e, exc_info=True)
                                 logger.info("An error occurred , try again later!")
                         else:
+                            # skip offer
                             logger.info("This quote has already been processed, skip. \n ")
                     logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 180 seconds! \n ")
                 else:
                     logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 180 seconds! \n ")
             except KeyboardInterrupt:
+                # kills program if interrupted
                 logger.info("User stopped, program exited ... ")
                 sys.exit()
             except Exception as e:
                 logger.error(e, exc_info=True)
                 logger.info(" An error occurred , try again later!")
             time.sleep(180)
+
         except KeyboardInterrupt:
+            # kills program if interrupted
             logger.info("User stopped, program exited ... ")
             sys.exit()
 
@@ -266,7 +293,7 @@ def main():
 if __name__ == '__main__':
     logger = logging.getLogger("Buff-Bot")
     logger.setLevel(logging.DEBUG)
-    s_handler = logging.StreamHandler()
+    s_handler = logging.StreamHandler() #creates a stream handler which outputs log messages to console
     s_handler.setLevel(logging.INFO)
     s_handler.setFormatter(logging.Formatter('[%(asctime)s] - %(filename)s - %(levelname)s: %(message)s'))
     logger.addHandler(s_handler)
