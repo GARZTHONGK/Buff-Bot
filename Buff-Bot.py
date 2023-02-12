@@ -19,11 +19,13 @@ headers = {
 
 
 def checkaccountstate(dev=False):
+    # if dev, use local fake trade.
 
     if dev and os.path.exists('dev/buff_account.json'):
         logger.info('Development mode, using a local account')
         return json.loads(FileUtils.readfile('dev/buff_account.json'))['data']['nickname']
     else:
+        # get data, return data if found, else Error
         response_json = requests.get('https://buff.163.com/account/api/user/info', headers=headers).json()
         if response_json['code'] == 'OK':
             if 'data' in response_json:
@@ -36,6 +38,7 @@ def checkaccountstate(dev=False):
 
 
 @notify(on="ftqq", name="Server sauce notification plug-in")
+# notifications Dont know how it works
 def server_chan_notification_wrapper(body, title, notify_type, *args, **kwargs):
     token = kwargs['meta']['host']
     try:
@@ -82,19 +85,22 @@ def main():
     logger.info("Welcome to Buff-Bot Github: https://github.com/jiajiaxd/Buff-Bot")
     logger.info("initializing...")
     first_run = False
-    if not os.path.exists("config.json"):
+    if not os.path.exists("config.json"): # if doesnt exist copy config.example.json to config.json
         first_run = True
         shutil.copy("config.example.json", "config.json")
-    if not os.path.exists("cookies.txt"):
+
+    if not os.path.exists("cookies.txt"): #if doesnt exist make cookies.txt
         first_run = True
         FileUtils.writefile("cookies.txt", "session=")
-    if not os.path.exists("steamaccount.json"):
+
+    if not os.path.exists("steamaccount.json"): #if doesnt exist create steamaccount.json template
         first_run = True
         FileUtils.writefile("steamaccount.json", json.dumps({"steamid": "", "shared_secret": "",
                                                              "identity_secret": "", "api_key": "",
                                                              "steam_username": "", "steam_password": ""}))
+
     if first_run:
-        logger.info("The first run is detected, and a configuration file has been generated for you, please follow the README prompts to fill in the configuration file!")
+        logger.info("The first run is detected and a configuration file has been generated for you, please follow the README prompts to fill in the configuration file!")
         logger.info('Press any key to continue...')
         os.system('pause >nul')
     config = json.loads(FileUtils.readfile("config.json"))
@@ -102,14 +108,19 @@ def main():
     orderinfo = {}
     if 'dev' in config and config['dev']:
         development_mode = True
+
     if development_mode:
         logger.info("Developer mode is enabled")
+
     if 'sell_protection' in config:
         sell_protection = config['sell_protection']
+
     if 'protection_price' in config:
         protection_price = config['protection_price']
+
     if 'protection_price_percentage' in config:
         protection_price_percentage = config['protection_price_percentage']
+
     logger.info("Preparing to log into BUFF...")
     headers['Cookie'] = FileUtils.readfile('cookies.txt')
     logger.info("cookies detected, try to log in ")
@@ -119,12 +130,15 @@ def main():
         logger.info("Developer mode is enabled, skip Steam login")
     else:
         try:
+            # logs in using steamaccount.json
             logger.info("Logging into steam")
             acc = json.loads(FileUtils.readfile('steamaccount.json'))
             client = SteamClient(acc.get('api_key'))
             SteamClient.login(client, acc.get('steam_username'), acc.get('steam_password'), 'steamaccount.json')
             logger.info("Successfully logged in!\n")
+
         except FileNotFoundError:
+            # could not find steamaccount.json
             logger.error('steamaccount.json not detected，Please add it to steamaccount.json before proceeding！')
             logger.info('Press any key to exit')
             os.system('pause >nul')
@@ -135,15 +149,18 @@ def main():
             logger.info("Checking Steam account login status...")
             if not development_mode:
                 if not client.is_session_alive():
+                    # exit if steamsession is not alive
                     logger.error("Steam login status invalid! program exited...")
                     sys.exit()
+
             logger.info("Steam account status is normal")
             logger.info("Pending shipment/pending accessories inspection...")
             checkaccountstate()
-            if development_mode and os.path.exists("dev/message_notification.json"):
+            if development_mode and os.path.exists("dev/message_notification.json"): #dev mode
                 logger.info("Developer mode is turned on, use local message notification file")
                 to_deliver_order = json.loads(FileUtils.readfile("dev/message_notification.json")).get('data').get(
                     'to_deliver_order')
+
             else:
                 response = requests.get("https://buff.163.com/api/message/notification", headers=headers)
                 to_deliver_order = json.loads(response.text).get('data').get('to_deliver_order')
