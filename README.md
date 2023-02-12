@@ -68,9 +68,13 @@ The `steamaccount.json` parameter acquisition tutorials are all below, please re
 personal recommendation to use [Watt Toolkit](https://github.com/BeyondDimension/SteamTools) to obtain Steam token parameter operation is very simple
 
 [Obtain Steam web page API KEY](http://steamcommunity.com/dev/apikey)
+
 [Steam token introduction and extract and transfer](https://steam.red/blog/archives/Steamguard.html)
+
 [buffhelp NetEase buff automatic delivery-哔哩哔哩(Please check P2-P7)](https://www.bilibili.com/video/BV1DT4y1P7Dx)
+
 [Obtaining SteamGuard from mobile device](https://github.com/SteamTimeIdler/stidler/wiki/Getting-your-%27shared_secret%27-code-for-use-with-Auto-Restarter-on-Mobile-Authentication)
+
 [Obtaining SteamGuard using Android emulation](https://github.com/codepath/android_guides/wiki/Genymotion-2.0-Emulators-with-Google-Play-support)
 
 ## Thank you
