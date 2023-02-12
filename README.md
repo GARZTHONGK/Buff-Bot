@@ -100,15 +100,25 @@ Perfect support.
 
 2. `config.json` Instructions
 dev: whether to enable the developer mode, non-developers please do not enable it, please check the code for the specific effect
+
 sell_protection: whether to enable the sale protection, it will not automatically receive sales requests that are lower than the price
+
 protection_price: sale protection Price, if the lowest price of other sellers is lower than this price, the sale protection will not be carried out
+
 protection_price_percentage: selling price protection ratio, if the selling price is lower than this ratio * the lowest price of other sellers, the quotation will not be automatically received
+
 sell_notification: sale notification (such as If you don’t need it, you can delete it directly)
+
 title: Notification title
+
 body: Notification content
+
 protection_notification: Sale protection notification (if you don’t need it, you can delete it directly)
+
 title: Notification title
+
 body: Notification content
+
 servers: Apprise format server list - see [Apprise for details](https://github.com/caronc/apprise)
 
 * Additional support for [Server sauce](https://sct.ftqq.com/) format is `isftqq://<SENDKEY>`
