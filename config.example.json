@@ -4,11 +4,11 @@
   "protection_price": 30,
   "protection_price_percentage": 0.9,
   "sell_notification": {
-    "title": "Successfully sold {game} accessories: {item_name}",
+    "title": "Successfully sold {game} items: {item_name}",
     "body": "![good_icon]({good_icon}) \\ nGame : {game} \\ nAccessory : {item_name} \\n Steam price (reference): {steam_price} USD \\n Steam price (reference): {steam_price_cny } RMB \\n ![buyer_avatar]({buyer_avatar}) \\ nBuyer: {buyer_name} \\ nOrder Time: {order_time} "
   },
   "protection_notification": {
-    "title": "{game}饰品: {item_name} 未自动接收报价, 价格与市场最低价相差过大",
+    "title" : " {game} accessory: {item_name} did not automatically receive the quotation, the price is too far from the lowest price in the market " ,
     "body": "Please go to BUFF to confirm the quotation!"
   },
   "servers": [
