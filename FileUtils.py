@@ -23,15 +23,15 @@ def appendfile(name, text):
 
 
 def get_mid_str(s, start_str, stop_str):
-    # 查找左边文本的结束位置
+    # Find the end of the left text
     start_pos = s.find(start_str)
     if start_pos == -1:
         return None
     start_pos += len(start_str)
-    # 查找右边文本的起始位置
+    # Find the starting position of the text on the right
     stop_pos = s.find(stop_str, start_pos)
     if stop_pos == -1:
         return None
 
-    # 通过切片取出中间的文本
+    # Take out the text in the middle by slicing
     return s[start_pos:stop_pos]
