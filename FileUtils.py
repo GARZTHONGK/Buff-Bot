@@ -2,11 +2,13 @@ import os
 
 
 def writefile(name, text):
+    # writes data to file
     with open(name, 'w', encoding='utf-8') as f:
         f.write(text)
 
 
 def readfile(name):
+    # reads and returns file
     text = None
     with open(name, 'r', encoding='utf-8') as f:
         text = str(f.read())
@@ -14,6 +16,7 @@ def readfile(name):
 
 
 def appendfile(name, text):
+    # add text to end of file
     if os.path.exists(name):
         with open(name, 'a', encoding='utf-8') as f:
             f.write(text)
