@@ -272,9 +272,9 @@ def main():
                         else:
                             # skip offer
                             logger.info("This quote has already been processed, skip. \n ")
-                    logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 180 seconds! \n ")
+                    logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 600 seconds! \n ")
                 else:
-                    logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 180 seconds! \n ")
+                    logger.info("There is no BUFF quotation request. Will check the BUFF transaction information again after 600 seconds! \n ")
             except KeyboardInterrupt:
                 # kills program if interrupted
                 logger.info("User stopped, program exited ... ")
@@ -282,7 +282,7 @@ def main():
             except Exception as e:
                 logger.error(e, exc_info=True)
                 logger.info(" An error occurred , try again later!")
-            time.sleep(180)
+            time.sleep(600)
 
         except KeyboardInterrupt:
             # kills program if interrupted
