@@ -36,21 +36,22 @@ protection_price: sale protection Price, if the lowest price of other sellers is
 
 protection_price_percentage: selling price protection ratio, if the selling price is lower than this ratio * the lowest price of other sellers, the quotation will not be automatically received
 
-sell_notification: sale notification (such as If you don’t need it, you can delete it directly)
+sell_notification: sale notification (If you don’t need it, you can delete it)
 
 title: Notification title
 
 body: Notification content
 
-protection_notification: Sale protection notification (if you don’t need it, you can delete it directly)
+protection_notification: Sale protection notification (if you don’t need it, you can delete it)
 
 title: Notification title
 
 body: Notification content
 
-servers: Apprise format server list - see [Apprise for details](https://github.com/caronc/apprise)
+webhook: Discord channel to send notifications to
 
-* Additional support for [Server sauce](https://sct.ftqq.com/) format is `isftqq://<SENDKEY>`
+session_notification: session expired notification (if you don't need it, you can delete it)
+
 3. `steamaccount.json` Description
 steamid: Steam’s digital ID
 shared_secret: Steam token parameter

@@ -11,7 +11,6 @@
     "title" : " {game} accessory: {item_name} did not automatically receive the quotation, the price is too far from the lowest price in the market " ,
     "body": "Please go to BUFF to confirm the quotation!"
   },
-  "servers": [
-    "tgram://bottoken/ChatID"
-  ]
+  "webhook" : "https://discord.com/api/webhooks/xxx",
+  "session_notification" : "Your buff 163 session has expired please renew it"
 }

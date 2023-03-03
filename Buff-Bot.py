@@ -4,6 +4,7 @@ import shutil
 import sys
 import json
 
+
 import apprise
 from apprise.AppriseAsset import *
 from apprise.decorators import notify
@@ -20,7 +21,7 @@ headers = {
 
 def checkaccountstate(dev=False):
     # if dev, use local fake trade.
-
+    config = json.loads(FileUtils.readfile("config.json"))
     if dev and os.path.exists('dev/buff_account.json'):
         logger.info('Development mode, using a local account')
         return json.loads(FileUtils.readfile('dev/buff_account.json'))['data']['nickname']
@@ -32,31 +33,29 @@ def checkaccountstate(dev=False):
                 if 'nickname' in response_json['data']:
                     return response_json['data']['nickname']
         logger.error('The login status of the BUFF account is invalid, please check cookies.txt!')
+        # sends session notification to discord webhook
+        if 'session_notification' in config:
+            logger.info("sending session invalid message to webhook")
+
+            embed = {
+                "title": config["session_notification"]
+            }
+            data = {
+                "embeds": [
+                    embed
+                ]
+            }
+            head = {
+                "Content-Type": "application/json"
+            }
+            result = requests.post(config["webhook"], json=data, headers=head)
+            if 200 <= result.status_code < 300:
+                logger.info(f"Webhook sent status code: {result.status_code}")
+            else:
+                logger.info(f"Not sent with status code: {result.status_code}, response:\n{result.json()}")
         logger.info("Press any key to continue...")
         os.system('pause >nul')
         sys.exit()
-
-
-@notify(on="ftqq", name="Server sauce notification plug-in")
-# notifications Dont know how it works
-def server_chan_notification_wrapper(body, title, notify_type, *args, **kwargs):
-    token = kwargs['meta']['host']
-    try:
-        resp = requests.get('https://sctapi.ftqq.com/%s.send?title=%s&desp=%s' % (token, title, body))
-        if resp.status_code == 200:
-            if resp.json()['code'] == 0:
-                logger.info('Server sauce notification sent successfully')
-                return True
-            else:
-                logger.error('Server sauce notification failed to send, return code = %d' % resp.json()['code'])
-                return False
-        else:
-            logger.error('Server sauce notification failed to send, http return code = %s' % resp.status_code)
-            return False
-    except Exception as e:
-        logger.error('Server sauce notification plug-in failed to send！')
-        logger.error(e)
-        return False
 
     # Returning True/False is a way to relay your status back to Apprise.
     # Returning nothing (None by default) is always interpreted as a Success
@@ -85,15 +84,15 @@ def main():
     logger.info("Welcome to Buff-Bot Github: https://github.com/jiajiaxd/Buff-Bot")
     logger.info("initializing...")
     first_run = False
-    if not os.path.exists("config.json"): # if doesnt exist copy config.example.json to config.json
+    if not os.path.exists("config.json"):  # if doesnt exist copy config.example.json to config.json
         first_run = True
         shutil.copy("config.example.json", "config.json")
 
-    if not os.path.exists("cookies.txt"): #if doesnt exist make cookies.txt
+    if not os.path.exists("cookies.txt"):  # if doesnt exist make cookies.txt
         first_run = True
         FileUtils.writefile("cookies.txt", "session=")
 
-    if not os.path.exists("steamaccount.json"): #if doesnt exist create steamaccount.json template
+    if not os.path.exists("steamaccount.json"):  # if doesnt exist create steamaccount.json template
         first_run = True
         FileUtils.writefile("steamaccount.json", json.dumps({"steamid": "", "shared_secret": "",
                                                              "identity_secret": "", "api_key": "",
@@ -149,7 +148,7 @@ def main():
             logger.info("Checking Steam account login status...")
             if not development_mode:
                 if not client.is_session_alive():
-                    # exit if steamsession is not alive
+                    # exit if steam session is not alive
                     logger.error("Steam login status invalid! program exited...")
                     sys.exit()
 
@@ -157,7 +156,6 @@ def main():
             logger.info("Pending shipment/pending accessories inspection...")
             checkaccountstate()
             if development_mode and os.path.exists("dev/message_notification.json"):
-                #dev mode
                 logger.info("Developer mode is turned on, use local message notification file")
                 to_deliver_order = json.loads(FileUtils.readfile("dev/message_notification.json")).get('data').get(
                     'to_deliver_order')
@@ -174,7 +172,6 @@ def main():
                 logger.info("DOTA2 to be delivered: " + str(int(to_deliver_order.get('dota2'))) + "units")
 
             if development_mode and os.path.exists("dev/steam_trade.json"):
-                # dev mode
                 logger.info("Developer mode is turned on, using local files to be shipped")
                 trade = json.loads(FileUtils.readfile("dev/steam_trade.json")).get('data')
 
@@ -237,15 +234,27 @@ def main():
                                             other_lowest_price > protection_price:
                                         # checks if price is too low compared to other items
                                         logger.error("The transaction amount is too low, skip this transaction quote")
+
                                         if 'protection_notification' in config:
-                                            # sends notification to app
-                                            apprise_obj = apprise.Apprise()
-                                            for server in config['servers']:
-                                                apprise_obj.add(server)
-                                            apprise_obj.notify(
-                                                title=format_str(config['protection_notification']['title'], go),
-                                                body=format_str(config['protection_notification']['body'], go),
-                                            )
+                                            logger.info("Sending protection notification to webhook")
+                                            embed = {
+                                                "description": config["protection_notification"].get("body"),
+                                                "title": config["protection_notification"].get("title")
+                                            }
+                                            data = {
+                                                "embeds": [
+                                                    embed
+                                                ]
+                                            }
+
+                                            head = {
+                                                "Content-Type": "application/json"
+                                            }
+                                            result = requests.post(config["webhook"], json=data, headers=head)
+                                            if 200 <= result.status_code < 300:
+                                                logger.info(f"Webhook sent status code: {result.status_code}")
+                                            else:
+                                                logger.info(f"Not sent with status code: {result.status_code}, response:\n{result.json()}")
                                         continue
 
                                 logger.info("Accepting offers...")
@@ -255,17 +264,28 @@ def main():
                                 else:
                                     # accepting trade
                                     client.accept_trade_offer(offerid)
-                                ignoredoffer.append(offerid) #adds offer to ignore list
+                                ignoredoffer.append(offerid)  # adds offer to ignore list
                                 logger.info("Trade complete! This transaction offer has been added to the ignore list! \n ")
                                 if 'sell_notification' in config:
-                                    # sends notification to app
-                                    apprise_obj = apprise.Apprise()
-                                    for server in config['servers']:
-                                        apprise_obj.add(server)
-                                    apprise_obj.notify(
-                                        title=format_str(config['sell_notification']['title'], go),
-                                        body=format_str(config['sell_notification']['body'], go),
-                                    )
+                                    logger.info("sending sell notification to webhook")
+
+                                    embed = {
+                                        "description": config["sell_notification"].get("body"),
+                                        "title": config["sell_notification"].get("title")
+                                    }
+                                    data = {
+                                        "embeds": [
+                                            embed
+                                        ]
+                                    }
+                                    head = {
+                                        "Content-Type": "application/json"
+                                    }
+                                    result = requests.post(config["webhook"], json=data, headers=head)
+                                    if 200 <= result.status_code < 300:
+                                        logger.info(f"Webhook sent status code: {result.status_code}")
+                                    else:
+                                        logger.info(f"Not sent with status code: {result.status_code}, response:\n{result.json()}")
                             except Exception as e:
                                 logger.error(e, exc_info=True)
                                 logger.info("An error occurred , try again later!")
@@ -293,7 +313,7 @@ def main():
 if __name__ == '__main__':
     logger = logging.getLogger("Buff-Bot")
     logger.setLevel(logging.DEBUG)
-    s_handler = logging.StreamHandler() #creates a stream handler which outputs log messages to console
+    s_handler = logging.StreamHandler()  # creates a stream handler which outputs log messages to console
     s_handler.setLevel(logging.INFO)
     s_handler.setFormatter(logging.Formatter('[%(asctime)s] - %(filename)s - %(levelname)s: %(message)s'))
     logger.addHandler(s_handler)
